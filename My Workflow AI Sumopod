@@ -1,0 +1,156 @@
+{
+  "name": "My workflow 4",
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "initialMessages": "Hi there! 👋\nMy name is Agus. How can I assist you today?",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        16,
+        16
+      ],
+      "id": "589eaa8a-ef96-4ac2-a05e-b7eae40443bd",
+      "name": "When chat message received",
+      "webhookId": "29d6f4ea-b5d8-4b19-9971-36b976533990"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/13FF0CgW-qYHvHd8cbKKrgk6FLV3ImqoC0JpTlu5fXuk/edit?usp=sharing",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/13FF0CgW-qYHvHd8cbKKrgk6FLV3ImqoC0JpTlu5fXuk/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        240,
+        16
+      ],
+      "id": "ff9563a0-5f09-4cc7-b7d4-78c1b76f0d0d",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "vpPznTxZhCxGq3BU",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://ai.sumopod.com/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer sk-5QMKUDo2XdnInFIlemqmbA"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"model\": \"seed-2-0-mini\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"Kamu adalah chatbot layanan servis HP. Jawab pertanyaan user berdasarkan data layanan yang diberikan. Gunakan bahasa Indonesia yang singkat, jelas, dan informatif.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"Pertanyaan user: {{$json.message}}\\n\\nData layanan:\\nJenis: {{$json['Jenis Layanan']}}\\nDeskripsi: {{$json['Deskripsi']}}\\nHarga: {{$json['Harga/Estimasi Biaya']}}\"\n    }\n  ],\n  \"max_tokens\": 150,\n  \"temperature\": 0.7\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        448,
+        16
+      ],
+      "id": "b80a6918-8103-4ae2-a806-eabf0cb74cc3",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a89c6c43-4062-48c8-a703-d548c1abef17",
+              "name": "=text",
+              "value": "={{$node[\"Get row(s) in sheet\"].json[\"Jenis Layanan\"]}}\n{{$node[\"Get row(s) in sheet\"].json[\"Deskripsi\"]}}\n{{$node[\"Get row(s) in sheet\"].json[\"Harga/Estimasi Biaya\"]}}\n",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        656,
+        16
+      ],
+      "id": "4c244d34-5d17-4380-b51a-14818fd195d8",
+      "name": "Edit Fields"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "8ee93710-666a-41ad-acb5-baee7b49e184",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1fe7c18cafdf4b147956eba58a5f57afb13943a9c216970b3afb3443d9165c11"
+  },
+  "id": "qV9GFPWeIvFSqxks",
+  "tags": []
+}
