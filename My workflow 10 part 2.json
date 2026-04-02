@@ -1,0 +1,331 @@
+{
+  "name": "My workflow 10 part 2",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        16,
+        -32
+      ],
+      "id": "17cc2c31-d4f9-45b6-94f5-ac59f03f3bcf",
+      "name": "Manual Trigger"
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "https://drive.google.com/file/d/19LMUcHU7Sj4a7woGVharOc99WuAlDRk7/view?usp=drive_link",
+          "mode": "url"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        224,
+        -32
+      ],
+      "id": "d542bba2-18f5-47d8-af5b-0f9f2fb6cb57",
+      "name": "Download file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "QEvXOCDNiaxleAn8",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "dataType": "binary",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1,
+      "position": [
+        528,
+        16
+      ],
+      "id": "7646de80-a9b4-451d-83e8-3f4f5d1402ec",
+      "name": "Document Loader"
+    },
+    {
+      "parameters": {
+        "chunkSize": 500,
+        "chunkOverlap": 50,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        384,
+        144
+      ],
+      "id": "72cdcc25-74b0-4b5b-86fc-b3ec21207519",
+      "name": "Text Splitter"
+    },
+    {
+      "parameters": {
+        "model": "text-embedding-3-large",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1,
+      "position": [
+        992,
+        80
+      ],
+      "id": "b70a49e8-a5e1-46ce-9fcd-e86f49af55d3",
+      "name": "Embeddings OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "0aMrdLbUMBL25Uyt",
+          "name": "OpenAi account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "tableName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list",
+          "cachedResultName": "documents"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1,
+      "position": [
+        832,
+        -112
+      ],
+      "id": "38b3b402-8d90-41f8-9814-b7104bc1cf49",
+      "name": "Supabase Vector Store",
+      "credentials": {
+        "supabaseApi": {
+          "id": "cLSUq1qld1PcdjFy",
+          "name": "Supabase account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "public": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1,
+      "position": [
+        16,
+        272
+      ],
+      "id": "3ce29a9b-0f76-4d7f-83f3-eada913b2ab2",
+      "name": "When chat message received",
+      "webhookId": "949f5fcc-04d0-4463-925d-a8b64586016e"
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o-mini",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [
+        416,
+        480
+      ],
+      "id": "aa9e54b6-f359-4781-9ea1-e54580dff5d6",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "0aMrdLbUMBL25Uyt",
+          "name": "OpenAi account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.chatInput }}",
+        "options": {
+          "systemMessage": "Kamu WAJIB menggunakan tool Supabase untuk menjawab semua pertanyaan.\n\nJangan menjawab dari pengetahuan sendiri.\n\nLangkah:\n1. Gunakan tool Supabase untuk mencari informasi\n2. Ambil hasilnya\n3. Gunakan hasil tersebut untuk menjawab\n\nJika tidak ada data, jawab:\n\"Maaf, saya tidak menemukan informasi di database.\""
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        624,
+        272
+      ],
+      "id": "5f7dc640-82fe-4fdb-81f8-5f7f707f5ade",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolName": "RagTool",
+        "toolDescription": "Tool ini berisi seluruh isi dokumen panduan penulisan ilmiah tugas akhir. Gunakan tool ini untuk menjawab SEMUA pertanyaan pengguna.",
+        "tableName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list",
+          "cachedResultName": "documents"
+        },
+        "topK": 3,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1,
+      "position": [
+        912,
+        400
+      ],
+      "id": "b338bb64-5135-4929-b642-dfaf8d026ee3",
+      "name": "Supabase Vector Store1",
+      "credentials": {
+        "supabaseApi": {
+          "id": "cLSUq1qld1PcdjFy",
+          "name": "Supabase account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "text-embedding-3-large",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1,
+      "position": [
+        912,
+        576
+      ],
+      "id": "9feca790-1a45-4d85-b7ab-5684693f9ef8",
+      "name": "Embeddings OpenAI (Retrieve)",
+      "credentials": {
+        "openAiApi": {
+          "id": "0aMrdLbUMBL25Uyt",
+          "name": "OpenAi account 4"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Download file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase Vector Store1": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI (Retrieve)": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Supabase Vector Store1",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Text Splitter": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Document Loader",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file": {
+      "main": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Document Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "371c3728-da11-4ed1-9f6b-cf97af8dbc52",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1fe7c18cafdf4b147956eba58a5f57afb13943a9c216970b3afb3443d9165c11"
+  },
+  "id": "gRRFCpZAyDDxZFg1",
+  "tags": []
+}
